@@ -22,22 +22,22 @@
 --clay:#C6613F;--on-clay:#FCFCFB;--clay-text:#A64D2E;--clay-tint:#F7E8E0;--clay-edge:#EBCBBB;
 --btn:#A9502F;--btn-hover:#8E4126;--on-accent:#FFFFFF;
 /* One colour family per tab. Strong colours keep 4.5:1 as text on their tint and on --bg. */
---today:#A9502F;--today-tint:#FBF1EB;--today-chip:#F5DFD3;--today-edge:#EED3C5;--today-wash:#FAF2EC;
---work:#2E5F8E;--work-tint:#F0F5FA;--work-chip:#DCE8F3;--work-edge:#CCDCEC;--work-wash:#F1F5F9;
---home:#3B6B46;--home-tint:#F0F6EF;--home-chip:#DCEBDC;--home-edge:#CBDFCC;--home-wash:#F1F6F0;
---activity:#8C6100;--activity-tint:#FCF5E6;--activity-chip:#F6E7C6;--activity-edge:#EEDCB4;--activity-wash:#FBF5EA;
---other:#6A4D93;--other-tint:#F5F1FA;--other-chip:#E7DFF3;--other-edge:#DAD0EC;--other-wash:#F5F2F9;
+--today:#866300;--today-tint:#FFF8DD;--today-chip:#FBE9A6;--today-edge:#F1DC8C;--today-wash:#FFF9E5;
+--work:#B3261E;--work-tint:#FDF0EF;--work-chip:#F8D9D6;--work-edge:#F0C6C2;--work-wash:#FCF2F1;
+--home:#2B5D93;--home-tint:#EFF5FB;--home-chip:#D9E7F5;--home-edge:#C7DAEE;--home-wash:#F1F5FA;
+--activity:#2E6B3A;--activity-tint:#EEF6EE;--activity-chip:#D7EBD8;--activity-edge:#C4DFC6;--activity-wash:#F0F6F0;
+--other:#5B5D60;--other-tint:#F3F3F2;--other-chip:#E3E3E1;--other-edge:#D4D4D1;--other-wash:#F4F4F3;
 --accent:var(--today);--tint:var(--today-tint);--tint-chip:var(--today-chip);--tint-edge:var(--today-edge);--tint-wash:var(--today-wash);
 --serif:"Fraunces",Georgia,serif;--sans:-apple-system,"Segoe UI",system-ui,sans-serif;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#1C1B18;--wash:#22211D;--card:#272621;--chip:#383730;--edge:#3A3934;--hair:#3A3833;
 --ink:#ECEAE3;--ink-soft:#BEBCB2;--ink-grey:#7F7D74;
 --clay:#D8734F;--on-clay:#1C1B18;--clay-text:#EC9474;--clay-tint:#3A2921;--clay-edge:#5C3B2D;
 --btn:#D8734F;--btn-hover:#E58A68;--on-accent:#1C1B18;
---today:#EE9677;--today-tint:#2E2420;--today-chip:#4A3229;--today-edge:#5C3B2D;--today-wash:#26211D;
---work:#8EBBE6;--work-tint:#20272F;--work-chip:#2C3B4D;--work-edge:#37495E;--work-wash:#1F2328;
---home:#90C99B;--home-tint:#212A22;--home-chip:#2E4232;--home-edge:#3A5340;--home-wash:#1F241F;
---activity:#E6B565;--activity-tint:#2C2719;--activity-chip:#463A20;--activity-edge:#5A4A2A;--activity-wash:#25221B;
---other:#BEA6E3;--other-tint:#28232F;--other-chip:#3C3150;--other-edge:#4C3F60;--other-wash:#232027;color-scheme:dark}}
+--today:#F0C94A;--today-tint:#2C2716;--today-chip:#4A3F18;--today-edge:#5E5021;--today-wash:#25221A;
+--work:#F28B82;--work-tint:#2F2120;--work-chip:#4D2C2A;--work-edge:#613734;--work-wash:#282020;
+--home:#8EBBE6;--home-tint:#20272F;--home-chip:#2C3B4D;--home-edge:#37495E;--home-wash:#1F2328;
+--activity:#90C99B;--activity-tint:#212A22;--activity-chip:#2E4232;--activity-edge:#3A5340;--activity-wash:#1F241F;
+--other:#BDBCB7;--other-tint:#262624;--other-chip:#3A3A37;--other-edge:#4A4A46;--other-wash:#222220;color-scheme:dark}}
 #app[data-tab="work"]{--accent:var(--work);--tint:var(--work-tint);--tint-chip:var(--work-chip);--tint-edge:var(--work-edge);--tint-wash:var(--work-wash)}
 #app[data-tab="home"]{--accent:var(--home);--tint:var(--home-tint);--tint-chip:var(--home-chip);--tint-edge:var(--home-edge);--tint-wash:var(--home-wash)}
 #app[data-tab="activity"]{--accent:var(--activity);--tint:var(--activity-tint);--tint-chip:var(--activity-chip);--tint-edge:var(--activity-edge);--tint-wash:var(--activity-wash)}
@@ -96,6 +96,10 @@ ol>li+li{border-top:1px solid var(--hair);padding-top:14px}
 .t a:hover{text-decoration-color:var(--accent)}
 .s,.line{margin:0;color:var(--ink-soft);font-size:17px;line-height:1.55;max-width:65ch}
 ul>li.line{position:relative;padding-left:18px}
+.wk{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.wk li{display:grid;grid-template-columns:4.6em minmax(0,1fr);gap:12px;align-items:baseline}
+.wk b{font-size:15px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wk span{color:var(--ink-soft);line-height:1.5}
 ul>li.line::before{content:"";position:absolute;left:3px;top:calc(.775em - 3px);width:6px;height:6px;border-radius:50%;background:var(--accent)}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:12px;background:var(--btn);border:1px solid var(--btn);color:var(--on-clay);border-radius:10px;padding:0 18px;font:600 16px/1.2 var(--sans);text-decoration:none;cursor:pointer}
 .btn:hover{background:var(--btn-hover);border-color:var(--btn-hover)}
@@ -380,6 +384,14 @@ function isPast(e){
   const mer=(m[3]||(e.t.match(/(AM|PM)\s*$/i)||[])[1]||'').toUpperCase();let h=parseInt(m[1],10)%12;if(mer==='PM')h+=12;
   return now.getHours()*60+now.getMinutes()>=h*60+parseInt(m[2]||'0',10);
 }
+// Week ahead: a list of {d, text}. Older briefs carry one paragraph, split here at each "Mon 12"-style day.
+function weekSec(w){
+  let rows=Array.isArray(w)?w:String(w).split(/(?:\.\s+|[,;]\s+(?:and\s+)?)(?=(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d)/).map(x=>{
+    const m=x.trim().replace(/\.$/,'').match(/^((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d+)\s*(?:is|has)?\s*:?\s*(.*)$/);
+    return m?{d:m[1],text:m[2].charAt(0).toUpperCase()+m[2].slice(1)}:{d:'',text:x.trim()}});
+  const s=el('section');s.append(el('h2',null,'Week ahead'));const ul=el('ul','wk');
+  rows.filter(r=>r.text).forEach(r=>{const li=el('li');li.append(el('b',null,r.d),el('span',null,r.text));ul.append(li)});
+  s.append(ul);return s}
 function lineSec(title,text){const s=el('section');s.append(el('h2',null,title),el('p','line',text));return s}
 function calSec(g){
   const s=el('section');s.append(el('h2',null,'Calendar · next 8 days'));
@@ -449,7 +461,7 @@ function render(){
     const acts=el('div','acts');B.acts.forEach(a=>{const d=el('div','act');d.append(el('b',null,a.time),el('p',null,a.text));acts.append(d)});P.append(acts);
     const pr=progress();if(pr.total){const g=el('div','progress');g.setAttribute('role','progressbar');g.setAttribute('aria-valuemin','0');g.setAttribute('aria-valuemax',String(pr.total));g.setAttribute('aria-valuenow',String(pr.done));
       g.append(el('p',null,pr.done===pr.total?'All '+pr.total+' to-dos done today':pr.done+' of '+pr.total+' to-dos done'));const bar=el('div','pbar'),fill=el('span');fill.style.width=(100*pr.done/pr.total)+'%';bar.append(fill);g.append(bar);P.append(g)}
-    P.append(listSec('Clashes',B.clashes,'No clashes.','clash'),listSec('Prep',B.prep,null,'prep'),lineSec('Week ahead',B.weekAhead));
+    P.append(listSec('Clashes',B.clashes,'No clashes.','clash'),listSec('Prep',B.prep,null,'prep'),weekSec(B.weekAhead));
   }
   if(cur==='work'){const W=B.work;
     P.append(listSec('Needs your reply',W.needsReply,'Nobody is waiting on you.','reply'),listSec('Waiting on others',W.waiting,'Nothing outstanding.','wait'),lineSec('Teams',W.teams),listSec('Deadlines · next two weeks',W.deadlines,null,'deadline'));
