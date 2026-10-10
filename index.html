@@ -100,6 +100,8 @@ ul>li.line{position:relative;padding-left:18px}
 .wk li{display:grid;grid-template-columns:4.6em minmax(0,1fr);gap:12px;align-items:baseline}
 .wk b{font-size:15px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
 .wk span{color:var(--ink-soft);line-height:1.5}
+.wk.num li{grid-template-columns:1.4em minmax(0,1fr)}
+.wk a{color:var(--ink);font-weight:600;text-decoration-color:var(--ink-grey);text-underline-offset:3px}
 ul>li.line::before{content:"";position:absolute;left:3px;top:calc(.775em - 3px);width:6px;height:6px;border-radius:50%;background:var(--accent)}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:12px;background:var(--btn);border:1px solid var(--btn);color:var(--on-clay);border-radius:10px;padding:0 18px;font:600 16px/1.2 var(--sans);text-decoration:none;cursor:pointer}
 .btn:hover{background:var(--btn-hover);border-color:var(--btn-hover)}
@@ -399,6 +401,13 @@ function weekSec(w){
   const s=el('section');s.append(el('h2',null,'Week ahead'));const ul=el('ul','wk');
   rows.filter(r=>r.text).forEach(r=>{const li=el('li');li.append(el('b',null,r.d),el('span',null,r.text));ul.append(li)});
   s.append(ul);return s}
+// Events found in email, waiting for Michelle's yes. The numbers match the Telegram list she answers.
+function mailEvSec(list){
+  const s=el('section');s.append(el('h2',null,'From your email · add to calendar?'));const ul=el('ul','wk num');
+  list.forEach(e=>{const li=el('li'),sp=el('span');
+    if(e.url&&/^https:\/\//.test(e.url)){const a=el('a',null,e.title);a.href=e.url;a.target='_blank';a.rel='noopener noreferrer';sp.append(a)}else sp.append(e.title);
+    sp.append(' · '+e.when+(e.cal&&e.cal!=='Ask'?' · '+e.cal:''));li.append(el('b',null,e.n),sp);ul.append(li)});
+  const n=el('p','note','Reply in Telegram with the numbers to add, e.g. “1 3”.');s.append(ul,n);return s}
 function lineSec(title,text){const s=el('section');s.append(el('h2',null,title),el('p','line',text));return s}
 function calSec(g){
   const s=el('section');s.append(el('h2',null,'Calendar · next 8 days'));
@@ -468,7 +477,7 @@ function render(){
     const acts=el('div','acts');B.acts.forEach(a=>{const d=el('div','act');d.append(el('b',null,a.time),el('p',null,a.text));acts.append(d)});P.append(acts);
     const pr=progress();if(pr.total){const g=el('div','progress');g.setAttribute('role','progressbar');g.setAttribute('aria-valuemin','0');g.setAttribute('aria-valuemax',String(pr.total));g.setAttribute('aria-valuenow',String(pr.done));
       g.append(el('p',null,pr.done===pr.total?'All '+pr.total+' to-dos done today':pr.done+' of '+pr.total+' to-dos done'));const bar=el('div','pbar'),fill=el('span');fill.style.width=(100*pr.done/pr.total)+'%';bar.append(fill);g.append(bar);P.append(g)}
-    P.append(listSec('Clashes',B.clashes,'No clashes.','clash'),listSec('Prep',B.prep,null,'prep'),weekSec(B.weekAhead));
+    P.append(listSec('Clashes',B.clashes,'No clashes.','clash'),listSec('Prep',B.prep,null,'prep'));if((B.emailEvents||[]).length)P.append(mailEvSec(B.emailEvents));P.append(weekSec(B.weekAhead));
   }
   if(cur==='work'){const W=B.work;
     P.append(listSec('Needs your reply',W.needsReply,'Nobody is waiting on you.','reply'),listSec('Waiting on others',W.waiting,'Nothing outstanding.','wait'),lineSec('Teams',W.teams),listSec('Deadlines · next two weeks',W.deadlines,null,'deadline'));
