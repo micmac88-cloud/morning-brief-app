@@ -407,7 +407,7 @@ function mailEvSec(list){
   list.forEach(e=>{const li=el('li'),sp=el('span');
     if(e.url&&/^https:\/\//.test(e.url)){const a=el('a',null,e.title);a.href=e.url;a.target='_blank';a.rel='noopener noreferrer';sp.append(a)}else sp.append(e.title);
     sp.append(' · '+e.when+(e.cal&&e.cal!=='Ask'?' · '+e.cal:''));li.append(el('b',null,e.n),sp);ul.append(li)});
-  const n=el('p','note','Reply in Telegram with the numbers to add, e.g. “1 3”.');s.append(ul,n);return s}
+  const n=el('p','note','Reply in Telegram with the numbers to add.');s.append(ul,n);return s}
 function lineSec(title,text){const s=el('section');s.append(el('h2',null,title),el('p','line',text));return s}
 function calSec(g){
   const s=el('section');s.append(el('h2',null,'Calendar · next 8 days'));
