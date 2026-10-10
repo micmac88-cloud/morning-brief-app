@@ -297,7 +297,6 @@ const GROUPS=['work','home','activity','other'];
 const LABEL={today:'Today',work:'Work',home:'Home',activity:'Activity',other:'Other'};
 const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,120)||'x';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
-const ask=seed=>'https://claude.ai/new?q='+encodeURIComponent(seed)+'&surface=cowork&composer=mini';
 const SVGNS='http://www.w3.org/2000/svg';
 const sv=(tag,attrs)=>{const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e};
 
@@ -347,6 +346,13 @@ function migrate(){
 }
 const openFolds=new Set();
 const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
+// The button opens the item where it lives (the email itself, the event, the thread), never a Claude chat.
+function openLabel(url){
+  if(!url||!/^https:\/\//.test(url))return null;let u;try{u=new URL(url)}catch(_){return null}
+  if(/(^|\.)outlook\.(office365|office|live)\.com$/.test(u.hostname))return /calendar/i.test(url)?'Open in Outlook calendar':'Open in Outlook';
+  if(u.hostname==='mail.google.com')return 'Open in Gmail';
+  if(/(^|\.)teams\.(microsoft|live)\.com$/.test(u.hostname))return 'Open in Teams';
+  return null}
 function item(list,i,it,sec){
   const li=el('li');const d=el('div','it'),p=el('p','t');
   if(sec){const k=ik(sec,it),is=on(k);li.className='tk';
@@ -358,7 +364,8 @@ function item(list,i,it,sec){
   }else li.append(el('span','n',String(i+1)));
   if(it.url&&/^https:\/\//.test(it.url)){const a=el('a',null,it.title);a.href=it.url;a.target='_blank';a.rel='noopener noreferrer';p.append(a)}else p.textContent=it.title;
   d.append(p,el('p','s',it.text));
-  if(it.button){const b=el('a','btn',it.button.label);b.href=ask(it.button.seed);b.target='_blank';b.rel='noopener noreferrer';d.append(b)}
+  const go=openLabel(it.url);
+  if(go){const b=el('a','btn',go);b.href=it.url;b.target='_blank';b.rel='noopener noreferrer';d.append(b)}
   li.append(d);list.append(li);
 }
 // Open items first, then a folded "Done (n)" list that keeps its open state across re-renders.
