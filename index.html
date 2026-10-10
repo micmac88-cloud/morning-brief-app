@@ -170,6 +170,13 @@ h2+.slot{border-top:0;padding-top:0}
 footer .in{padding-block:4px 32px;display:flex;flex-wrap:wrap;gap:10px}
 footer button{min-height:44px;padding:0 18px;font:500 15px/1.2 var(--sans);color:var(--ink-soft);background:none;border:1px solid var(--edge);border-radius:10px;cursor:pointer}
 footer button:hover{color:var(--ink);border-color:var(--ink-grey)}
+footer .sync{flex-basis:100%;display:grid;gap:10px;margin-bottom:6px}
+footer .sync p{margin:0;color:var(--ink-soft);font-size:15px;line-height:1.45}
+footer .sync form{display:grid;gap:10px;max-width:420px}
+footer .sync input{font:16px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--edge);border-radius:10px;padding:0 14px;min-height:48px;width:100%}
+footer .sync .row{display:flex;flex-wrap:wrap;gap:10px}
+footer .sync .btn{margin:0}
+footer .sync .err:empty{display:none}
 /* Lock screen */
 .lock{min-height:100vh;min-height:100dvh}
 .lock .in{padding-block:clamp(48px,12vh,112px) 48px;max-width:420px}
@@ -223,7 +230,15 @@ section+section{margin-top:20px}
   </div></div>
   <div class="band tabbar"><div class="in"><nav role="tablist" aria-label="Brief sections" id="tabs"></nav></div></div>
   <div class="band panel"><div class="in" id="panel" role="tabpanel"></div></div>
-  <footer class="band"><div class="in"><button type="button" id="refresh">Refresh</button><button type="button" id="lockbtn">Lock</button></div></footer>
+  <footer class="band"><div class="in">
+    <div class="sync"><p id="syncmsg" role="status"></p>
+      <form id="syncform" hidden autocomplete="off">
+        <input type="password" id="ghtok" aria-label="GitHub access key" placeholder="Paste the GitHub access key" required>
+        <div class="row"><button class="btn" type="submit">Save key</button><button type="button" id="syncoff">Remove key</button></div>
+        <p class="err" id="syncerr" role="alert"></p>
+      </form></div>
+    <button type="button" id="refresh">Refresh</button><button type="button" id="syncbtn">Sync</button><button type="button" id="lockbtn">Lock</button>
+  </div></footer>
 </div>
 
 <script>
@@ -241,7 +256,7 @@ async function fetchBox(){
 }
 async function deriveKey(pw,box){
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:b64d(box.salt),iterations:box.iter},base,{name:'AES-GCM',length:256},true,['decrypt']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:b64d(box.salt),iterations:box.iter},base,{name:'AES-GCM',length:256},true,['encrypt','decrypt']);
 }
 async function open(box,key){
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(box.iv)},key,b64d(box.ct));
@@ -251,13 +266,13 @@ async function open(box,key){
 async function savedKey(box){
   const raw=store.get('mb-key'),salt=store.get('mb-salt');
   if(!raw||salt!==box.salt)return null;
-  return crypto.subtle.importKey('raw',b64d(raw),{name:'AES-GCM'},true,['decrypt']);
+  return crypto.subtle.importKey('raw',b64d(raw),{name:'AES-GCM'},true,['encrypt','decrypt']);
 }
 
-let box=null;
+let box=null,KEY=null;
 async function boot(){
   try{box=await fetchBox()}catch(_){showLock('The brief could not be loaded. Check your connection and refresh.');return}
-  try{const k=await savedKey(box);if(k){start(await open(box,k));return}}catch(_){store.del('mb-key')}
+  try{const k=await savedKey(box);if(k){const d=await open(box,k);KEY=k;start(d);return}}catch(_){store.del('mb-key')}
   showLock();
 }
 function showLock(msg){$('app').hidden=true;$('lock').hidden=false;if(msg)$('lockmsg').textContent=msg;$('pw').focus()}
@@ -265,7 +280,7 @@ $('lockform').addEventListener('submit',async ev=>{
   ev.preventDefault();$('err').textContent='';
   if(!box){try{box=await fetchBox()}catch(_){$('err').textContent='No connection.';return}}
   try{
-    const key=await deriveKey($('pw').value,box);const data=await open(box,key);
+    const key=await deriveKey($('pw').value,box);const data=await open(box,key);KEY=key;
     if($('remember').checked){store.set('mb-key',b64e(await crypto.subtle.exportKey('raw',key)));store.set('mb-salt',box.salt)}
     $('pw').value='';start(data);
   }catch(_){$('err').textContent='That password did not open the brief.'}
@@ -287,11 +302,12 @@ let B=null,rules={},local={},ticks={},cur='today',pending=null;
 function start(data){
   B=data;rules=B.rules||{};
   try{local=JSON.parse(store.get('mb-rules')||'{}')||{}}catch(_){local={}}
-  try{ticks=JSON.parse(store.get('mb-ticks-'+B.date)||'{}')||{}}catch(_){ticks={}}
+  try{ticks=JSON.parse(store.get('mb-done')||'{}')||{}}catch(_){ticks={}}
+  migrate();
   const h=location.hash.slice(1),s=store.get('mb-tab');
   cur=LABEL[h]?h:(LABEL[s]?s:'today');
   $('dayline').textContent=B.dayLine;$('headline').textContent=B.headline;
-  $('lock').hidden=true;$('app').hidden=false;render();
+  $('lock').hidden=true;$('app').hidden=false;render();sync.start();
 }
 const groupOf=ev=>local[slug(ev.title)]||rules[slug(ev.title)]||ev.g;
 
@@ -309,17 +325,30 @@ function terrain(){
   if(T.moon)svg.append(sv('path',{d:'M790,26 a14,14 0 1,0 14,20 a11,11 0 1,1 -14,-20z',fill:'none',stroke:'var(--ink)','stroke-width':2}));
   return svg;
 }
-/* Ticks: one key per item (section + title), saved on this phone for this brief's date only. */
-const ik=(sec,it)=>sec+':'+slug(it.title);
-const saveTicks=()=>store.set('mb-ticks-'+B.date,JSON.stringify(ticks));
+/* Ticks: {key: {at, t, off?}}, saved on this device and synced (encrypted) to the private ticks repo.
+   Items with a source id keep the same key every day, so the next brief can leave finished ones out;
+   items without one fall back to this brief's date + section + title. Unticks are kept as off:true so
+   they win over an older tick from another device. */
+const ik=(sec,it)=>it.id?'id:'+it.id:B.date+':'+sec+':'+slug(it.title);
+const mk=m=>B.date+':move:'+m.key;
+const on=k=>!!(ticks[k]&&!ticks[k].off);
+const saveTicks=()=>store.set('mb-done',JSON.stringify(ticks));
+function mark(k,v,t){ticks[k]=v?{at:new Date().toISOString(),t}:{at:new Date().toISOString(),t,off:true};saveTicks();sync.push()}
+// Ticks saved by the earlier version (one list per date, no sync) move into the synced list once.
+function migrate(){
+  const old='mb-ticks-'+B.date;let o;try{o=JSON.parse(store.get(old)||'null')}catch(_){o=null}
+  if(!o)return;const at=new Date().toISOString(),mv=new Set(B.movement.today.map(m=>m.key));
+  for(const k in o)if(o[k]===true){const nk=mv.has(k)?B.date+':move:'+k:B.date+':'+k;if(!ticks[nk])ticks[nk]={at,t:''}}
+  saveTicks();store.del(old);
+}
 const openFolds=new Set();
 const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){return false}};
 function item(list,i,it,sec){
   const li=el('li');const d=el('div','it'),p=el('p','t');
-  if(sec){const k=ik(sec,it),on=!!ticks[k];li.className='tk';
-    const tb=el('button','tick');tb.type='button';tb.setAttribute('aria-pressed',String(on));tb.setAttribute('aria-label',(on?'Mark not done: ':'Mark done: ')+it.title);
-    tb.addEventListener('click',()=>{const v=!ticks[k];
-      if(v){ticks[k]=true}else delete ticks[k];saveTicks();
+  if(sec){const k=ik(sec,it),is=on(k);li.className='tk';
+    const tb=el('button','tick');tb.type='button';tb.setAttribute('aria-pressed',String(is));tb.setAttribute('aria-label',(is?'Mark not done: ':'Mark done: ')+it.title);
+    tb.addEventListener('click',()=>{const v=!on(k);
+      mark(k,v,it.title);
       if(v&&!calm()){tb.setAttribute('aria-pressed','true');li.classList.add('leaving');setTimeout(render,380)}else render()});
     li.append(tb);
   }else li.append(el('span','n',String(i+1)));
@@ -330,7 +359,7 @@ function item(list,i,it,sec){
 }
 // Open items first, then a folded "Done (n)" list that keeps its open state across re-renders.
 function tickList(box,items,sec,doneLine){
-  const open=items.filter(it=>!ticks[ik(sec,it)]),done=items.filter(it=>ticks[ik(sec,it)]);
+  const open=items.filter(it=>!on(ik(sec,it))),done=items.filter(it=>on(ik(sec,it)));
   if(open.length){const ol=el('ol');open.forEach((it,i)=>item(ol,i,it,sec));box.append(ol)}
   else box.append(el('p','alldone',doneLine||'All done.'));
   if(done.length){const f=el('details','fold');if(openFolds.has(sec))f.open=true;
@@ -389,18 +418,18 @@ function move(e,g){
   const from=groupOf(e);local[slug(e.title)]=g;store.set('mb-rules',JSON.stringify(local));
   pending={title:e.title,to:g,from};render();
 }
-const left=(items,sec)=>items.filter(it=>!ticks[ik(sec,it)]).length;
+const left=(items,sec)=>items.filter(it=>!on(ik(sec,it))).length;
 function counts(){
   const W=B.work,first=B.calendar.length?B.calendar[0].d:null;
   return{today:left(B.clashes,'clash')+left(B.prep.filter(p=>p.url||p.button),'prep'),
     work:left(W.needsReply,'reply')+left(W.waiting,'wait'),home:left(B.home.reminders,'remind'),
-    activity:B.movement.today.filter(m=>!ticks[m.key]).length,
+    activity:B.movement.today.filter(m=>!on(mk(m))).length,
     other:B.calendar.filter(e=>groupOf(e)==='other'&&e.d===first&&!isPast(e)).length};
 }
 // Today's to-dos for the progress bar: what needs doing today, not the two-week deadlines or reading.
 function progress(){
   const W=B.work,sets=[[B.clashes,'clash'],[B.prep,'prep'],[W.needsReply,'reply'],[W.waiting,'wait'],[B.home.reminders,'remind']];
-  let total=B.movement.today.length,done=B.movement.today.filter(m=>ticks[m.key]).length;
+  let total=B.movement.today.length,done=B.movement.today.filter(m=>on(mk(m))).length;
   sets.forEach(([a,k])=>{total+=a.length;done+=a.length-left(a,k)});
   return{total,done};
 }
@@ -434,13 +463,65 @@ function render(){
   if(cur==='home')P.append(lineSec('Gmail',B.home.gmail),listSec('Personal reminders',B.home.reminders,null,'remind'),calSec('home'));
   if(cur==='activity'){
     const s=el('section');s.append(el('h2',null,'Movement today'));const ul=el('ul');ul.style.gap='12px';
-    B.movement.today.forEach(m=>{const lab=el('label','check'+(ticks[m.key]?' done':''));const cb=el('input');cb.type='checkbox';cb.checked=!!ticks[m.key];
-      cb.addEventListener('change',()=>{if(cb.checked)ticks[m.key]=true;else delete ticks[m.key];saveTicks();render()});
+    B.movement.today.forEach(m=>{const lab=el('label','check'+(on(mk(m))?' done':''));const cb=el('input');cb.type='checkbox';cb.checked=on(mk(m));
+      cb.addEventListener('change',()=>{mark(mk(m),cb.checked,m.title);render()});
       lab.append(cb,el('span',null,m.title+' · '+m.time));const li=el('li');li.append(lab);ul.append(li)});
     const nx=el('p','line',B.movement.next);nx.style.marginTop='14px';s.append(ul,nx);P.append(s,calSec('activity'));
   }
   if(cur==='other')P.append(calSec('other'));
 }
+
+/* ---------- sync: ticks.enc.json in the private repo, encrypted with the brief's key ----------
+   The GitHub access key is kept on this device encrypted with the same key, so it is unusable while locked.
+   Each run pulls the remote list, keeps the newest entry per item, and writes back only if this device
+   has something newer. A conflicting write from another device just triggers another round. */
+const API='https://api.github.com/repos/micmac88-cloud/morning-ticks/contents/ticks.enc.json';
+const KEEP=21*864e5;
+async function seal(obj){const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},KEY,new TextEncoder().encode(JSON.stringify(obj)));
+  return {v:1,salt:box.salt,iv:b64e(iv),ct:b64e(ct)}}
+async function unseal(x){return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(x.iv)},KEY,b64d(x.ct))))}
+const sync={tok:null,busy:false,again:false,timer:null,
+  async start(){
+    try{const x=JSON.parse(store.get('mb-gh')||'null');this.tok=x?await unseal(x):null}catch(_){this.tok=null}
+    this.say();if(this.tok)this.run();
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')this.run()});
+    addEventListener('online',()=>this.run());
+  },
+  say(msg){$('syncmsg').textContent=msg||(this.tok?'Ticks sync across your devices.':'Ticks are saved on this device only. Tap Sync to share them with Claude and your other devices.')},
+  push(){if(!this.tok)return;clearTimeout(this.timer);this.say('Saving…');this.timer=setTimeout(()=>this.run(),800)},
+  hdr(){return {Authorization:'Bearer '+this.tok,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}},
+  async run(){
+    if(!this.tok||!KEY)return;if(this.busy){this.again=true;return}this.busy=true;
+    try{for(let round=0;round<3;round++){
+      const r=await fetch(API,{headers:this.hdr(),cache:'no-store'});
+      if(r.status===401||r.status===403){this.say('GitHub did not accept the access key. Tap Sync to paste a new one.');return}
+      let remote={},sha;
+      if(r.ok){const j=await r.json();sha=j.sha;
+        try{const x=JSON.parse(atob(j.content.replace(/\s/g,'')));if(x.salt===box.salt)remote=await unseal(x)}catch(_){remote={}}}
+      else if(r.status!==404)throw new Error(r.status);
+      let pulled=false,ahead=false;const cut=Date.now()-KEEP;
+      for(const k in remote)if(!ticks[k]||remote[k].at>ticks[k].at){ticks[k]=remote[k];pulled=true}
+      for(const k in ticks){if(Date.parse(ticks[k].at)<cut){delete ticks[k];continue}if(!remote[k]||ticks[k].at>remote[k].at)ahead=true}
+      if(pulled){saveTicks();render()}
+      if(!ahead)break;
+      const body={message:'Ticks '+new Date().toISOString().slice(0,16),content:btoa(JSON.stringify(await seal(ticks)))};if(sha)body.sha=sha;
+      const w=await fetch(API,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},this.hdr()),body:JSON.stringify(body)});
+      if(w.ok)break;if(w.status!==409&&w.status!==422)throw new Error(w.status);
+    }
+    this.say('Ticks synced at '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+'.');
+    }catch(_){this.say('Ticks are saved here but not synced yet. They will sync when you are back online.')}
+    finally{this.busy=false;if(this.again){this.again=false;this.run()}}
+  }};
+$('syncbtn').addEventListener('click',()=>{const f=$('syncform');f.hidden=!f.hidden;$('syncoff').hidden=!sync.tok;if(!f.hidden)$('ghtok').focus()});
+$('syncform').addEventListener('submit',async ev=>{
+  ev.preventDefault();$('syncerr').textContent='';const t=$('ghtok').value.trim();
+  try{const r=await fetch(API.replace(/\/contents\/.*/,''),{headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});
+    if(!r.ok){$('syncerr').textContent='GitHub did not accept that key. Check it has access to morning-ticks.';return}
+  }catch(_){$('syncerr').textContent='No connection.';return}
+  store.set('mb-gh',JSON.stringify(await seal(t)));sync.tok=t;$('ghtok').value='';$('syncform').hidden=true;sync.run();
+});
+$('syncoff').addEventListener('click',()=>{store.del('mb-gh');sync.tok=null;$('syncform').hidden=true;sync.say()});
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 boot();
