@@ -58,6 +58,17 @@ body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--sans);p
 .top .in{padding-block:24px 16px}
 .date{color:var(--ink-soft);font-size:15px;font-weight:500;line-height:1.4;margin:0 0 6px}
 h1{font-family:var(--serif);font-weight:600;font-size:28px;line-height:1.2;margin:0;text-wrap:balance;max-width:24ch}
+/* Important reminders: a large capitals banner under the headline on every tab, until ticked */
+.alerts{display:grid;gap:12px;margin:18px 0 0;padding:0;list-style:none}
+.alert{display:flex;gap:6px;align-items:flex-start;padding:16px 16px 16px 10px;border-radius:14px;background:var(--clay-tint);border:2px solid var(--clay)}
+.alert .tick{flex:none;margin:-4px 0 0;transform:scale(1.25)}
+.alert .tick::before{border-color:var(--clay-text)}
+.alert .tick[aria-pressed="true"]::before{background:var(--clay)}
+.alert b{display:block;font-size:24px;line-height:1.25;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--clay-text)}
+.alert p{margin:6px 0 0;font-size:18px;line-height:1.45;font-weight:600;color:var(--ink)}
+.alert.done{background:transparent;border-width:1px;border-color:var(--hair);padding-block:10px}
+.alert.done b{font-size:16px;font-weight:600;color:var(--ink-soft);text-decoration:line-through}
+.alert.done p{display:none}
 /* Tab row */
 .tabbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--tint-wash);border-bottom:1px solid var(--tint-edge)}
 .tabbar::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:env(safe-area-inset-top,0px);background:var(--tint-wash)}
@@ -233,6 +244,7 @@ section+section{margin-top:20px}
   <div class="band top"><div class="in">
     <p class="date" id="dayline"></p>
     <h1 id="headline"></h1>
+    <ol class="alerts" id="alerts" aria-label="Important reminders"></ol>
   </div></div>
   <div class="band tabbar"><div class="in"><nav role="tablist" aria-label="Brief sections" id="tabs"></nav></div></div>
   <div class="band panel"><div class="in" id="panel" role="tabpanel"></div></div>
@@ -458,6 +470,7 @@ function counts(){
 function progress(){
   const W=B.work,sets=[[B.clashes,'clash'],[B.prep,'prep'],[W.needsReply,'reply'],[W.waiting,'wait'],[B.home.reminders,'remind']];
   let total=B.movement.today.length,done=B.movement.today.filter(m=>on(mk(m))).length;
+  (B.alerts||[]).forEach(a=>{total++;if(on('id:'+a.id))done++});
   sets.forEach(([a,k])=>{total+=a.length;done+=a.length-left(a,k)});
   return{total,done};
 }
@@ -470,8 +483,16 @@ function tabs(){
       const gap=$('panel').parentNode.getBoundingClientRect().top-nav.parentNode.parentNode.getBoundingClientRect().bottom;
       if(gap<0)window.scrollBy(0,gap)});nav.append(b)});
 }
+// Alerts: {id, title, text, due}. Ticking one syncs like any item; the next brief leaves it out.
+function alerts(){
+  const ol=$('alerts');ol.textContent='';ol.hidden=!(B.alerts||[]).length;
+  (B.alerts||[]).forEach(a=>{const k='id:'+a.id,is=on(k),li=el('li','alert'+(is?' done':''));
+    const tb=el('button','tick');tb.type='button';tb.setAttribute('aria-pressed',String(is));tb.setAttribute('aria-label',(is?'Mark not done: ':'Mark done: ')+a.title);
+    tb.addEventListener('click',()=>{mark(k,!on(k),a.title);render()});
+    const d=el('div');d.append(el('b',null,is?'Done: '+a.title:a.title),el('p',null,a.text));li.append(tb,d);ol.append(li)});
+}
 function render(){
-  $('app').dataset.tab=cur;tabs();const P=$('panel');P.textContent='';P.setAttribute('aria-labelledby','tab-'+cur);
+  $('app').dataset.tab=cur;alerts();tabs();const P=$('panel');P.textContent='';P.setAttribute('aria-labelledby','tab-'+cur);
   if(cur==='today'){
     P.append(terrain());
     const acts=el('div','acts');B.acts.forEach(a=>{const d=el('div','act');d.append(el('b',null,a.time),el('p',null,a.text));acts.append(d)});P.append(acts);
@@ -486,7 +507,7 @@ function render(){
     P.append(listSec('Research · feedback system with Nicholas',W.research,null,'research'));
     const c=el('section');c.append(el('h2',null,'CiC'));Object.entries(W.cic).forEach(([k,v])=>{const r=el('div','slot');r.append(el('b',null,k));const bx=el('div','it');
       if(!v.length)bx.append(el('p','quiet','Nothing new.'));else tickList(bx,v,'cic-'+slug(k));r.append(bx);c.append(r)});P.append(c);
-    P.append(listSec('Field news',W.field,null,'field'),calSec('work'));
+    P.append(listSec('Job sweep',W.jobs||[],'No sweep this week.','jobs'),listSec('Field news',W.field,null,'field'),calSec('work'));
   }
   if(cur==='home')P.append(lineSec('Gmail',B.home.gmail),listSec('Personal reminders',B.home.reminders,null,'remind'),calSec('home'));
   if(cur==='activity'){
