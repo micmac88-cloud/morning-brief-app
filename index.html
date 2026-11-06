@@ -27,6 +27,7 @@
 --home:#2B5D93;--home-tint:#EFF5FB;--home-chip:#D9E7F5;--home-edge:#C7DAEE;--home-wash:#F1F5FA;
 --activity:#2E6B3A;--activity-tint:#EEF6EE;--activity-chip:#D7EBD8;--activity-edge:#C4DFC6;--activity-wash:#F0F6F0;
 --other:#5B5D60;--other-tint:#F3F3F2;--other-chip:#E3E3E1;--other-edge:#D4D4D1;--other-wash:#F4F4F3;
+--uk:#6B3FA0;--uk-tint:#F5F0FB;--uk-chip:#E6DAF4;--uk-edge:#D8C6EC;--uk-wash:#F7F3FB;
 --accent:var(--today);--tint:var(--today-tint);--tint-chip:var(--today-chip);--tint-edge:var(--today-edge);--tint-wash:var(--today-wash);
 --serif:"Fraunces",Georgia,serif;--sans:-apple-system,"Segoe UI",system-ui,sans-serif;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#1C1B18;--wash:#22211D;--card:#272621;--chip:#383730;--edge:#3A3934;--hair:#3A3833;
@@ -37,16 +38,19 @@
 --work:#F28B82;--work-tint:#2F2120;--work-chip:#4D2C2A;--work-edge:#613734;--work-wash:#282020;
 --home:#8EBBE6;--home-tint:#20272F;--home-chip:#2C3B4D;--home-edge:#37495E;--home-wash:#1F2328;
 --activity:#90C99B;--activity-tint:#212A22;--activity-chip:#2E4232;--activity-edge:#3A5340;--activity-wash:#1F241F;
---other:#BDBCB7;--other-tint:#262624;--other-chip:#3A3A37;--other-edge:#4A4A46;--other-wash:#222220;color-scheme:dark}}
+--other:#BDBCB7;--other-tint:#262624;--other-chip:#3A3A37;--other-edge:#4A4A46;--other-wash:#222220;
+--uk:#C4A6EA;--uk-tint:#29232F;--uk-chip:#3E3150;--uk-edge:#4F3F64;--uk-wash:#232027;color-scheme:dark}}
 #app[data-tab="work"]{--accent:var(--work);--tint:var(--work-tint);--tint-chip:var(--work-chip);--tint-edge:var(--work-edge);--tint-wash:var(--work-wash)}
 #app[data-tab="home"]{--accent:var(--home);--tint:var(--home-tint);--tint-chip:var(--home-chip);--tint-edge:var(--home-edge);--tint-wash:var(--home-wash)}
 #app[data-tab="activity"]{--accent:var(--activity);--tint:var(--activity-tint);--tint-chip:var(--activity-chip);--tint-edge:var(--activity-edge);--tint-wash:var(--activity-wash)}
 #app[data-tab="other"]{--accent:var(--other);--tint:var(--other-tint);--tint-chip:var(--other-chip);--tint-edge:var(--other-edge);--tint-wash:var(--other-wash)}
+#app[data-tab="uk"]{--accent:var(--uk);--tint:var(--uk-tint);--tint-chip:var(--uk-chip);--tint-edge:var(--uk-edge);--tint-wash:var(--uk-wash)}
 #tab-today{--k:var(--today);--k-chip:var(--today-chip)}
 #tab-work{--k:var(--work);--k-chip:var(--work-chip)}
 #tab-home{--k:var(--home);--k-chip:var(--home-chip)}
 #tab-activity{--k:var(--activity);--k-chip:var(--activity-chip)}
 #tab-other{--k:var(--other);--k-chip:var(--other-chip)}
+#tab-uk{--k:var(--uk);--k-chip:var(--uk-chip)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--sans);padding-bottom:env(safe-area-inset-bottom,0px);overflow-x:clip;overflow-wrap:break-word}
@@ -308,7 +312,7 @@ $('refresh').addEventListener('click',()=>location.reload());
 
 /* ---------- the brief ---------- */
 const GROUPS=['work','home','activity','other'];
-const LABEL={today:'Today',work:'Work',home:'Home',activity:'Activity',other:'Other'};
+const LABEL={today:'Today',work:'Work',home:'Home',activity:'Activity',other:'Other',uk:'UK'};
 const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,120)||'x';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
 const SVGNS='http://www.w3.org/2000/svg';
@@ -349,6 +353,7 @@ function terrain(){
 const ik=(sec,it)=>it.id?'id:'+it.id:B.date+':'+sec+':'+slug(it.title);
 const mk=m=>B.date+':move:'+m.key;
 const on=k=>!!(ticks[k]&&!ticks[k].off);
+const UK=()=>(B.uk&&B.uk.items)||[];
 const saveTicks=()=>store.set('mb-done',JSON.stringify(ticks));
 function mark(k,v,t){ticks[k]=v?{at:new Date().toISOString(),t}:{at:new Date().toISOString(),t,off:true};saveTicks();sync.push()}
 // Ticks saved by the earlier version (one list per date, no sync) move into the synced list once.
@@ -384,7 +389,7 @@ function item(list,i,it,sec){
 }
 // Open items first, then a folded "Done (n)" list that keeps its open state across re-renders.
 function tickList(box,items,sec,doneLine){
-  const open=items.filter(it=>!on(ik(sec,it))),done=items.filter(it=>on(ik(sec,it)));
+  const open=items.filter(it=>!it.done&&!on(ik(sec,it))),done=items.filter(it=>it.done||on(ik(sec,it)));
   if(open.length){const ol=el('ol');open.forEach((it,i)=>item(ol,i,it,sec));box.append(ol)}
   else box.append(el('p','alldone',doneLine||'All done.'));
   if(done.length){const f=el('details','fold');if(openFolds.has(sec))f.open=true;
@@ -458,13 +463,13 @@ function move(e,g){
   const from=groupOf(e);local[slug(e.title)]=g;store.set('mb-rules',JSON.stringify(local));
   pending={title:e.title,to:g,from};render();
 }
-const left=(items,sec)=>items.filter(it=>!on(ik(sec,it))).length;
+const left=(items,sec)=>items.filter(it=>!it.done&&!on(ik(sec,it))).length;
 function counts(){
   const W=B.work,first=B.calendar.length?B.calendar[0].d:null;
   return{today:left(B.clashes,'clash')+left(B.prep.filter(p=>p.url||p.button),'prep'),
     work:left(W.needsReply,'reply')+left(W.waiting,'wait'),home:left(B.home.reminders,'remind'),
     activity:B.movement.today.filter(m=>!on(mk(m))).length,
-    other:B.calendar.filter(e=>groupOf(e)==='other'&&e.d===first&&!isPast(e)).length};
+    other:B.calendar.filter(e=>groupOf(e)==='other'&&e.d===first&&!isPast(e)).length,uk:left(UK(),'uk')};
 }
 // Today's to-dos for the progress bar: what needs doing today, not the two-week deadlines or reading.
 function progress(){
@@ -505,6 +510,7 @@ function render(){
     const t=el('section');t.append(el('h2',null,'Teaching this week'));const ul=el('ul');ul.style.gap='6px';W.teaching.sessions.forEach(x=>ul.append(el('li','line',x)));t.append(ul);
     if(W.teaching.notes.length){const bx=el('div');bx.style.marginTop='18px';tickList(bx,W.teaching.notes,'teach');t.append(bx)}P.append(t);
     P.append(listSec('Research · feedback system with Nicholas',W.research,null,'research'));
+    P.append(listSec('Projects · CiC tasks this week',W.projects||[],'No project tasks due this week.','projects'));
     const c=el('section');c.append(el('h2',null,'CiC'));Object.entries(W.cic).forEach(([k,v])=>{const r=el('div','slot');r.append(el('b',null,k));const bx=el('div','it');
       if(!v.length)bx.append(el('p','quiet','Nothing new.'));else tickList(bx,v,'cic-'+slug(k));r.append(bx);c.append(r)});P.append(c);
     P.append(listSec('Job sweep',W.jobs||[],'No sweep this week.','jobs'),listSec('Field news',W.field,null,'field'),calSec('work'));
@@ -518,6 +524,10 @@ function render(){
     const nx=el('p','line',B.movement.next);nx.style.marginTop='14px';s.append(ul,nx);P.append(s,calSec('activity'));
   }
   if(cur==='other')P.append(calSec('other'));
+  // UK: a standing list of projects for the UK stay (private/uk.json), the same every day until done.
+  if(cur==='uk'){const s=listSec('Projects to do in the UK',UK(),'No UK projects yet. Send them to the bot.','uk');
+    if(B.uk&&B.uk.dates)s.insertBefore(el('p','line',B.uk.dates),s.children[1]);
+    s.append(el('p','note','To add, change or remove a project, message the bot, e.g. "UK: add …".'));P.append(s)}
 }
 
 /* ---------- sync: ticks.enc.json in the private repo, encrypted with the brief's key ----------
