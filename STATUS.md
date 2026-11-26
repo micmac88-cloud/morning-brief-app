@@ -5,11 +5,11 @@ _Last updated: 12 Nov 2026 by Claude Code_
 Handover file: the state of work in this repo right now. Whoever works here updates it at the end of every turn in which anything changed. This repo has no README.md or PROJECT-BRIEF.md; it holds only the published output of a separate source repo, so this file is the only description here.
 
 ## Now
+- Codex project instructions are in AGENTS.md.
 - Updated daily by ~/morning-brief/build/morning.sh; agents normally don't edit this repo by hand.
-- The run calls build/publish.sh in the source repo, which copies in index.html, manifest.webmanifest, sw.js and icons/, writes robots.txt and .nojekyll, then commits everything as "Update <date>" and pushes.
+- The run calls build/publish.sh in the source repo, which copies in index.html, manifest.webmanifest, sw.js and icons/, writes robots.txt and .nojekyll, then commits the generated site assets and pushes.
 - brief.enc.json is the day's data, encrypted before it reaches this repo; nothing here is stored as plain text.
-- Any hand edit to a tracked file is overwritten or swept into the next daily commit, because publish.sh runs `git add -A`.
-- Working tree clean.
+- The publisher overwrites generated assets. Instruction files and handover notes are outside its commit paths.
 
 ## Next
 - Nothing planned here. Changes to the app are made in the source repo (build/shell.html) and arrive with the next daily update.
