@@ -28,6 +28,7 @@
 --activity:#2E6B3A;--activity-tint:#EEF6EE;--activity-chip:#D7EBD8;--activity-edge:#C4DFC6;--activity-wash:#F0F6F0;
 --other:#5B5D60;--other-tint:#F3F3F2;--other-chip:#E3E3E1;--other-edge:#D4D4D1;--other-wash:#F4F4F3;
 --uk:#6B3FA0;--uk-tint:#F5F0FB;--uk-chip:#E6DAF4;--uk-edge:#D8C6EC;--uk-wash:#F7F3FB;
+--money:#0B6B62;--money-tint:#EDF7F5;--money-chip:#D2ECE7;--money-edge:#BCE0D9;--money-wash:#F0F7F5;
 --accent:var(--today);--tint:var(--today-tint);--tint-chip:var(--today-chip);--tint-edge:var(--today-edge);--tint-wash:var(--today-wash);
 --serif:"Fraunces",Georgia,serif;--sans:-apple-system,"Segoe UI",system-ui,sans-serif;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#1C1B18;--wash:#22211D;--card:#272621;--chip:#383730;--edge:#3A3934;--hair:#3A3833;
@@ -39,7 +40,8 @@
 --home:#8EBBE6;--home-tint:#20272F;--home-chip:#2C3B4D;--home-edge:#37495E;--home-wash:#1F2328;
 --activity:#90C99B;--activity-tint:#212A22;--activity-chip:#2E4232;--activity-edge:#3A5340;--activity-wash:#1F241F;
 --other:#BDBCB7;--other-tint:#262624;--other-chip:#3A3A37;--other-edge:#4A4A46;--other-wash:#222220;
---uk:#C4A6EA;--uk-tint:#29232F;--uk-chip:#3E3150;--uk-edge:#4F3F64;--uk-wash:#232027;color-scheme:dark}}
+--uk:#C4A6EA;--uk-tint:#29232F;--uk-chip:#3E3150;--uk-edge:#4F3F64;--uk-wash:#232027;
+--money:#7CD3C6;--money-tint:#1E2A28;--money-chip:#2A403C;--money-edge:#35524D;--money-wash:#1D2422;color-scheme:dark}}
 #app[data-tab="work"]{--accent:var(--work);--tint:var(--work-tint);--tint-chip:var(--work-chip);--tint-edge:var(--work-edge);--tint-wash:var(--work-wash)}
 #app[data-tab="home"]{--accent:var(--home);--tint:var(--home-tint);--tint-chip:var(--home-chip);--tint-edge:var(--home-edge);--tint-wash:var(--home-wash)}
 #app[data-tab="activity"]{--accent:var(--activity);--tint:var(--activity-tint);--tint-chip:var(--activity-chip);--tint-edge:var(--activity-edge);--tint-wash:var(--activity-wash)}
@@ -51,6 +53,8 @@
 #tab-activity{--k:var(--activity);--k-chip:var(--activity-chip)}
 #tab-other{--k:var(--other);--k-chip:var(--other-chip)}
 #tab-uk{--k:var(--uk);--k-chip:var(--uk-chip)}
+#app[data-tab="money"]{--accent:var(--money);--tint:var(--money-tint);--tint-chip:var(--money-chip);--tint-edge:var(--money-edge);--tint-wash:var(--money-wash)}
+#tab-money{--k:var(--money);--k-chip:var(--money-chip)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--sans);padding-bottom:env(safe-area-inset-bottom,0px);overflow-x:clip;overflow-wrap:break-word}
@@ -210,7 +214,40 @@ footer .sync .err:empty{display:none}
 .lock label input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--btn)}
 .lock .btn{margin:0;min-height:50px;width:100%;font-size:17px}
 .lock .err,.err{color:var(--clay-text);font-size:15px;line-height:1.4;min-height:1.4em;margin:0}
-@media (max-width:359px){nav button{font-size:14px}}
+/* Money tab: totals, coming up, subscriptions with a status and a note, recent expenses */
+.sums{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.sums li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.sums b{font-size:22px;line-height:1.25;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.sums span{color:var(--ink-soft);font-size:15.5px}
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;padding:0;list-style:none}
+.cats li{font-size:14.5px;line-height:1.3;padding:6px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--tint-edge);color:var(--ink-soft)}
+.cats b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.mtag{display:inline-block;font-size:13px;font-weight:600;line-height:1.3;padding:2px 8px;border-radius:6px;background:var(--tint-chip);color:var(--ink);margin-left:6px;vertical-align:1px}
+.mtag.warn{background:var(--clay-tint);color:var(--clay-text)}
+.subs{gap:0}
+.subs>li{padding:14px 0;border-top:1px solid var(--hair);min-width:0}
+.subs>li:first-child{border-top:0;padding-top:0}
+.subs>li:last-child{padding-bottom:0}
+.sh{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 12px}
+.sh .nm{font-weight:600;font-size:17px;line-height:23px;color:var(--ink);min-width:0}
+.sh .pr{font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.subs .s{font-size:15.5px;margin-top:2px}
+.subs .mynote{margin:6px 0 0;font-size:15.5px;color:var(--ink);background:var(--bg);border-left:3px solid var(--accent);padding:4px 10px;border-radius:0 6px 6px 0}
+.ed{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.ed select,.ed input{font:16px/1.2 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--edge);border-radius:10px;min-height:44px;padding:0 12px}
+.ed select{flex:0 0 auto}
+.ed input{flex:1 1 180px;min-width:0}
+.ed .ghost{flex:0 0 auto}
+.ed .saved{font-size:14.5px;color:var(--ink-soft)}
+.more{margin-top:6px}
+.more summary{display:inline-flex;align-items:center;min-height:44px;font:500 15px/1.2 var(--sans);color:var(--ink-soft);cursor:pointer;text-decoration:underline;text-decoration-color:var(--ink-grey);text-underline-offset:3px}
+.more summary::-webkit-details-marker{display:none}
+.more .ed{margin-top:2px}
+.rec li{grid-template-columns:4.2em minmax(0,1fr)}
+.rec .pr{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.rec a{color:var(--ink);font-weight:600}
+@media (max-width:459px){nav{gap:0}nav button{font-size:14px;padding-inline:0}nav .c{min-width:22px;padding:0 5px}}
+@media (max-width:359px){nav button{font-size:12.5px}}
 @media (min-width:640px){
 .top .in{padding-block:40px 20px}
 h1{font-size:38px;line-height:1.15}
@@ -312,7 +349,7 @@ $('refresh').addEventListener('click',()=>location.reload());
 
 /* ---------- the brief ---------- */
 const GROUPS=['work','home','activity','other'];
-const LABEL={today:'Today',work:'Work',home:'Home',activity:'Activity',other:'Other',uk:'UK'};
+const LABEL={today:'Today',work:'Work',home:'Home',activity:'Activity',other:'Other',uk:'UK',money:'Money'};
 const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,120)||'x';
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
 const SVGNS='http://www.w3.org/2000/svg';
@@ -326,7 +363,7 @@ function start(data){
   try{ticks=JSON.parse(store.get('mb-done')||'{}')||{}}catch(_){ticks={}}
   migrate();
   const h=location.hash.slice(1),s=store.get('mb-tab');
-  cur=LABEL[h]?h:(LABEL[s]?s:'today');
+  cur=LABEL[h]?h:(LABEL[s]?s:'today');if(cur==='money'&&!B.money)cur='today';
   $('dayline').textContent=B.dayLine;$('headline').textContent=B.headline;
   $('lock').hidden=true;$('app').hidden=false;render();sync.start();
 }
@@ -354,6 +391,12 @@ const ik=(sec,it)=>it.id?'id:'+it.id:B.date+':'+sec+':'+slug(it.title);
 const mk=m=>B.date+':move:'+m.key;
 const on=k=>!!(ticks[k]&&!ticks[k].off);
 const UK=()=>(B.uk&&B.uk.items)||[];
+/* Money: subscriptions from ~/personal-expenses. A Status or Notes change is saved like a tick under
+   "money:<id>" with m:{status,notes}; the next build writes it into subscriptions.csv for good. */
+const SUBS=()=>(B.money&&B.money.subs)||[];
+const mkey=x=>'money:'+x.id;
+function subState(x){const e=ticks[mkey(x)];return e&&e.m?{status:e.m.status||x.status,notes:e.m.notes!=null?e.m.notes:x.notes,saved:e.at}:{status:x.status,notes:x.notes}}
+function saveSub(x,status,notes){ticks[mkey(x)]={at:new Date().toISOString(),t:x.vendor,m:{status,notes}};saveTicks();sync.push()}
 const saveTicks=()=>store.set('mb-done',JSON.stringify(ticks));
 function mark(k,v,t){ticks[k]=v?{at:new Date().toISOString(),t}:{at:new Date().toISOString(),t,off:true};saveTicks();sync.push()}
 // Ticks saved by the earlier version (one list per date, no sync) move into the synced list once.
@@ -398,7 +441,7 @@ function tickList(box,items,sec,doneLine){
 }
 function listSec(title,items,empty,sec){
   const s=el('section');s.append(el('h2',null,title));
-  if(!items||!items.length){s.append(el('p','quiet',empty||'Nothing here today.'));return s}
+  if(!items||!items.length){s.append(el('p','quiet',empty||(B.coverage?'No items reported for this section.':'Nothing here today.')));return s}
   if(sec)tickList(s,items,sec);else{const ol=el('ol');items.forEach((it,i)=>item(ol,i,it));s.append(ol)}
   return s;
 }
@@ -420,16 +463,16 @@ function weekSec(w){
   s.append(ul);return s}
 // Events found in email, waiting for Michelle's yes. The numbers match the Telegram list she answers.
 function mailEvSec(list){
-  const s=el('section');s.append(el('h2',null,'From your email · add to calendar?'));const ul=el('ul','wk num');
+  const s=el('section');s.append(el('h2',null,B.coverage?'Dates from email':'From your email · add to calendar?'));const ul=el('ul','wk num');
   list.forEach(e=>{const li=el('li'),sp=el('span');
     if(e.url&&/^https:\/\//.test(e.url)){const a=el('a',null,e.title);a.href=e.url;a.target='_blank';a.rel='noopener noreferrer';sp.append(a)}else sp.append(e.title);
     sp.append(' · '+e.when+(e.cal&&e.cal!=='Ask'?' · '+e.cal:''));li.append(el('b',null,e.n),sp);ul.append(li)});
-  const n=el('p','note','Reply in Telegram with the numbers to add.');s.append(ul,n);return s}
+  const n=el('p','note',B.coverage?'Delivery dates are estimates.':'Reply in Telegram with the numbers to add.');s.append(ul,n);return s}
 function lineSec(title,text){const s=el('section');s.append(el('h2',null,title),el('p','line',text));return s}
 function calSec(g){
   const s=el('section');s.append(el('h2',null,'Calendar · next 8 days'));
   const evs=B.calendar.filter(e=>groupOf(e)===g);
-  if(!evs.length)s.append(el('p','quiet','No '+LABEL[g].toLowerCase()+' events in the next 8 days.'));
+  if(!evs.length)s.append(el('p','quiet',B.calendarUnavailable?'iCloud calendar unavailable.':B.coverage?'No matching entries returned by iCloud.':'No '+LABEL[g].toLowerCase()+' events in the next 8 days.'));
   else{
     const wrap=el('div','cal');
     [...new Set(evs.map(e=>e.d))].forEach(d=>{const row=el('div','day');row.append(el('div','dl',d));const box=el('div','evs');
@@ -469,7 +512,8 @@ function counts(){
   return{today:left(B.clashes,'clash')+left(B.prep.filter(p=>p.url||p.button),'prep'),
     work:left(W.needsReply,'reply')+left(W.waiting,'wait'),home:left(B.home.reminders,'remind'),
     activity:B.movement.today.filter(m=>!on(mk(m))).length,
-    other:B.calendar.filter(e=>groupOf(e)==='other'&&e.d===first&&!isPast(e)).length,uk:left(UK(),'uk')};
+    other:B.calendar.filter(e=>groupOf(e)==='other'&&e.d===first&&!isPast(e)).length,uk:left(UK(),'uk'),
+    money:SUBS().filter(x=>subState(x).status==='Check').length};
 }
 // Today's to-dos for the progress bar: what needs doing today, not the two-week deadlines or reading.
 function progress(){
@@ -481,7 +525,7 @@ function progress(){
 }
 function tabs(){
   const nav=$('tabs');nav.textContent='';const c=counts();
-  Object.keys(LABEL).forEach(k=>{const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(k===cur));b.id='tab-'+k;
+  Object.keys(LABEL).filter(k=>k!=='money'||B.money).forEach(k=>{const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(k===cur));b.id='tab-'+k;
     const anyItems=k!=='other';
     b.append(document.createTextNode(LABEL[k]),c[k]?el('span','c',String(c[k])):el('span','c '+(anyItems?'ok':'zero'),anyItems?'✓':'0'));
     b.addEventListener('click',()=>{cur=k;pending=null;store.set('mb-tab',k);render();
@@ -498,24 +542,25 @@ function alerts(){
 }
 function render(){
   $('app').dataset.tab=cur;alerts();tabs();const P=$('panel');P.textContent='';P.setAttribute('aria-labelledby','tab-'+cur);
+  if(B.coverage)P.append(lineSec('Source coverage',B.coverage));
   if(cur==='today'){
-    P.append(terrain());
+    if(!B.coverage)P.append(terrain());
     const acts=el('div','acts');B.acts.forEach(a=>{const d=el('div','act');d.append(el('b',null,a.time),el('p',null,a.text));acts.append(d)});P.append(acts);
     const pr=progress();if(pr.total){const g=el('div','progress');g.setAttribute('role','progressbar');g.setAttribute('aria-valuemin','0');g.setAttribute('aria-valuemax',String(pr.total));g.setAttribute('aria-valuenow',String(pr.done));
       g.append(el('p',null,pr.done===pr.total?'All '+pr.total+' to-dos done today':pr.done+' of '+pr.total+' to-dos done'));const bar=el('div','pbar'),fill=el('span');fill.style.width=(100*pr.done/pr.total)+'%';bar.append(fill);g.append(bar);P.append(g)}
-    P.append(listSec('Clashes',B.clashes,'No clashes.','clash'),listSec('Prep',B.prep,null,'prep'));if((B.emailEvents||[]).length)P.append(mailEvSec(B.emailEvents));P.append(weekSec(B.weekAhead));
+    P.append(listSec('Clashes',B.clashes,B.calendarUnavailable?'iCloud calendar unavailable.':B.coverage?'No overlaps in the returned iCloud times.':'No clashes.','clash'),listSec('Prep',B.prep,null,'prep'));if((B.emailEvents||[]).length)P.append(mailEvSec(B.emailEvents));P.append(weekSec(B.weekAhead));
   }
   if(cur==='work'){const W=B.work;
-    P.append(listSec('Needs your reply',W.needsReply,'Nobody is waiting on you.','reply'),listSec('Waiting on others',W.waiting,'Nothing outstanding.','wait'),lineSec('Teams',W.teams),listSec('Deadlines · next two weeks',W.deadlines,null,'deadline'));
+    P.append(listSec('Needs your reply',W.needsReply,B.coverage?'Reply queue unavailable.':'Nobody is waiting on you.','reply'),listSec('Waiting on others',W.waiting,B.coverage?'Waiting queue unavailable.':'Nothing outstanding.','wait'),lineSec('Teams',W.teams),listSec('Deadlines · next two weeks',W.deadlines,null,'deadline'));
     const t=el('section');t.append(el('h2',null,'Teaching this week'));const ul=el('ul');ul.style.gap='6px';W.teaching.sessions.forEach(x=>ul.append(el('li','line',x)));t.append(ul);
     if(W.teaching.notes.length){const bx=el('div');bx.style.marginTop='18px';tickList(bx,W.teaching.notes,'teach');t.append(bx)}P.append(t);
     P.append(listSec('Research · feedback system with Nicholas',W.research,null,'research'));
-    P.append(listSec('Projects · CiC tasks this week',W.projects||[],'No project tasks due this week.','projects'));
+    P.append(listSec('Projects · CiC tasks this week',W.projects||[],W.projectsUnavailable?'Airtable unavailable for this run.':'No project tasks due this week.','projects'));
     const c=el('section');c.append(el('h2',null,'CiC'));Object.entries(W.cic).forEach(([k,v])=>{const r=el('div','slot');r.append(el('b',null,k));const bx=el('div','it');
-      if(!v.length)bx.append(el('p','quiet','Nothing new.'));else tickList(bx,v,'cic-'+slug(k));r.append(bx);c.append(r)});P.append(c);
+      if(!v.length)bx.append(el('p','quiet',B.coverage?'Not assessed.':'Nothing new.'));else tickList(bx,v,'cic-'+slug(k));r.append(bx);c.append(r)});P.append(c);
     P.append(listSec('Job sweep',W.jobs||[],'No sweep this week.','jobs'),listSec('Field news',W.field,null,'field'),calSec('work'));
   }
-  if(cur==='home')P.append(lineSec('Gmail',B.home.gmail),listSec('Personal reminders',B.home.reminders,null,'remind'),calSec('home'));
+  if(cur==='home')P.append(lineSec(B.coverage?'Amazon deliveries':'Gmail',B.home.gmail),listSec('Personal reminders',B.home.reminders,null,'remind'),calSec('home'));
   if(cur==='activity'){
     const s=el('section');s.append(el('h2',null,'Movement today'));const ul=el('ul');ul.style.gap='12px';
     B.movement.today.forEach(m=>{const lab=el('label','check'+(on(mk(m))?' done':''));const cb=el('input');cb.type='checkbox';cb.checked=on(mk(m));
@@ -528,6 +573,68 @@ function render(){
   if(cur==='uk'){const s=listSec('Projects to do in the UK',UK(),'No UK projects yet. Send them to the bot.','uk');
     if(B.uk&&B.uk.dates)s.insertBefore(el('p','line',B.uk.dates),s.children[1]);
     s.append(el('p','note','To add, change or remove a project, message the bot, e.g. "UK: add …".'));P.append(s)}
+  if(cur==='money'&&B.money)moneyTab(P,B.money);
+}
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dshort=iso=>{if(!iso)return '';const d=new Date(iso+'T12:00:00');return DOW[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]};
+function subRow(ul,x,openEdit){
+  const st=subState(x),li=el('li'),sh=el('div','sh'),nm=el('span','nm',x.vendor);
+  if(x.venturis)nm.append(el('span','mtag','Venturis'));
+  if(st.status==='Cancelling'||st.status==='Cancelled')nm.append(el('span','mtag warn',st.status));
+  sh.append(nm,el('span','pr',x.price+(x.cadence?' · '+x.cadence:'')));li.append(sh);
+  const bits=[];if(x.item&&x.item!==x.vendor)bits.push(x.item);if(x.via&&x.via!=='direct')bits.push('via '+x.via);
+  if(x.hint)bits.push(x.hint);else if(x.next&&st.status!=='Cancelled')bits.push('next '+dshort(x.next));
+  if(bits.length)li.append(el('p','s',bits.join(' · ')));
+  if(st.notes)li.append(el('p','mynote',st.notes));
+  const ed=el('div','ed'),sel=el('select');sel.setAttribute('aria-label','Status of '+x.vendor);
+  (B.money.statuses||['Active','Check','Cancelling','Cancelled']).forEach(v=>{const o=el('option',null,v);o.value=v;if(v===st.status)o.selected=true;sel.append(o)});
+  const inp=el('input');inp.type='text';inp.value=st.notes||'';inp.placeholder='Add a note';inp.maxLength=300;inp.setAttribute('aria-label','Note for '+x.vendor);
+  const btn=el('button','ghost','Save');btn.type='button';const ok=el('span','saved',st.saved?'Saved':'');ok.setAttribute('role','status');
+  btn.addEventListener('click',()=>{saveSub(x,sel.value,inp.value.trim());render()});
+  ed.append(sel,inp,btn,ok);
+  if(openEdit)li.append(ed);else{const d=el('details','more');d.append(el('summary',null,'Change status or add a note'),ed);li.append(d)}
+  ul.append(li);
+}
+function moneyTab(P,M){
+  const all=SUBS(),st=x=>subState(x).status;
+  // This month
+  const m=el('section');m.append(el('h2',null,M.month.label+' so far'));
+  if(!M.month.totals.length)m.append(el('p','quiet','No charges yet this month.'));
+  else{const ul=el('ul','sums');M.month.totals.forEach(t=>{const li=el('li');li.append(el('b',null,t.now),el('span',null,M.month.lastLabel+': '+t.last));ul.append(li)});m.append(ul)}
+  if(M.month.categories.length){const c=el('ul','cats');M.month.categories.forEach(k=>{const li=el('li');li.append(document.createTextNode(k.category+' '),el('b',null,k.price));c.append(li)});m.append(c)}
+  if(M.running.length){const r=el('p','note');r.textContent='Running each month, about: '+M.running.map(x=>[x.subs&&x.subs+' subscriptions',x.bills&&x.bills+' bills and housing'].filter(Boolean).join(' + ')).join('; ')+'.';m.append(r)}
+  P.append(m);
+  // Coming up
+  const c=el('section');c.append(el('h2',null,'Coming up · next 14 days'));
+  const coming=M.coming.filter(k=>{const x=all.find(y=>y.id===k.id);return !x||st(x)!=='Cancelled'});
+  if(!coming.length)c.append(el('p','quiet','Nothing due in the next two weeks.'));
+  else{const ul=el('ul','wk');coming.forEach(k=>{const li=el('li'),sp=el('span',null,k.vendor+' · '+k.price);if(k.big)sp.append(el('span','mtag warn',k.cadence));li.append(el('b',null,dshort(k.date)),sp);ul.append(li)});c.append(ul)}
+  P.append(c);
+  // Flags
+  if((M.flags||[]).length){const f=el('section');f.append(el('h2',null,'Worth a look'));const ul=el('ul');ul.style.gap='8px';M.flags.forEach(t=>ul.append(el('li','line',t)));f.append(ul);P.append(f)}
+  // Subscriptions to check, then running ones (subscriptions, then bills), then cancelled
+  const chk=all.filter(x=>st(x)==='Check');
+  const s1=el('section');s1.append(el('h2',null,'Subscriptions to check'+(chk.length?' ('+chk.length+')':'')));
+  if(!chk.length)s1.append(el('p','quiet','Nothing to check.'));
+  else{s1.append(el('p','s','No charge when one was expected, or a trial with no charge found. Are you still paying?'));const ul=el('ul','subs');ul.style.marginTop='12px';chk.forEach(x=>subRow(ul,x,true));s1.append(ul)}
+  P.append(s1);
+  const byNext=(a,b)=>(a.next||'9999').localeCompare(b.next||'9999');
+  [['Subscriptions',x=>!x.bill],['Bills and housing',x=>x.bill]].forEach(([title,pick])=>{
+    const rows=all.filter(x=>pick(x)&&(st(x)==='Active'||st(x)==='Cancelling')).sort(byNext);if(!rows.length)return;
+    const s=el('section');s.append(el('h2',null,title+' ('+rows.length+')'));const ul=el('ul','subs');rows.forEach(x=>subRow(ul,x,false));s.append(ul);P.append(s)});
+  const gone=all.filter(x=>st(x)==='Cancelled');
+  if(gone.length){const s=el('section'),d=el('details','fold');if(openFolds.has('money-gone'))d.open=true;
+    d.addEventListener('toggle',()=>{d.open?openFolds.add('money-gone'):openFolds.delete('money-gone')});
+    s.append(el('h2',null,'Cancelled'));d.append(el('summary',null,'Show '+gone.length));const ul=el('ul','subs');ul.style.marginTop='8px';gone.forEach(x=>subRow(ul,x,false));d.append(ul);s.append(d);P.append(s)}
+  // Recent expenses
+  const r=el('section');r.append(el('h2',null,'Recent expenses · last 30 days'));
+  if(!M.recent.length)r.append(el('p','quiet','No expenses in the last 30 days.'));
+  else{const ul=el('ul','wk rec');M.recent.forEach(e=>{const li=el('li'),sp=el('span');
+      if(e.url&&/^https:\/\//.test(e.url)){const a=el('a',null,e.vendor);a.href=e.url;a.target='_blank';a.rel='noopener noreferrer';sp.append(a)}else sp.append(e.vendor);
+      sp.append(' · ',el('span','pr',e.price));if(e.venturis)sp.append(el('span','mtag','Venturis'));if(e.check)sp.append(el('span','mtag warn','check'));
+      sp.append(el('br'),document.createTextNode(e.item+' · '+e.category+(e.url?'':' · in '+e.where)));li.append(el('b',null,e.date),sp);ul.append(li)});r.append(ul)}
+  r.append(el('p','note','Status and notes save to your other devices and the server, like ticks. For anything else (a wrong amount, a missing charge), tell the bot or Claude.'));
+  P.append(r);
 }
 
 /* ---------- sync: ticks.enc.json in the private repo, encrypted with the brief's key ----------
